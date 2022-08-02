@@ -486,7 +486,7 @@ class CryptoTestHelper(val testHelper: CommonTestHelper) {
 
         testHelper.waitWithLatch {
             testHelper.retryPeriodicallyWithLatch(it) {
-                alice.cryptoService().crossSigningService().isUserTrusted(bob.myUserId)
+                bob.cryptoService().crossSigningService().isUserTrusted(alice.myUserId)
             }
         }
     }
