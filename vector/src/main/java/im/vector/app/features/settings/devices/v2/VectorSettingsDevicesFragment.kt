@@ -145,7 +145,7 @@ class VectorSettingsDevicesFragment :
                     append(getString(R.string.device_manager_learn_more_sessions_unverified))
                     append("\n\n")
                     append(getString(R.string.device_manager_learn_more_sessions_inactive))
-                }
+                },
         )
         SessionLearnMoreBottomSheet.show(childFragmentManager, args)
     }
