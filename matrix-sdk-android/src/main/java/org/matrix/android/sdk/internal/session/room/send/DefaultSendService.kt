@@ -39,6 +39,7 @@ import org.matrix.android.sdk.api.session.room.model.message.MessageVideoContent
 import org.matrix.android.sdk.api.session.room.model.message.MessageWithAttachmentContent
 import org.matrix.android.sdk.api.session.room.model.message.PollType
 import org.matrix.android.sdk.api.session.room.model.message.getFileUrl
+import org.matrix.android.sdk.api.session.room.model.relation.RelationDefaultContent
 import org.matrix.android.sdk.api.session.room.send.SendService
 import org.matrix.android.sdk.api.session.room.send.SendState
 import org.matrix.android.sdk.api.session.room.timeline.TimelineEvent
@@ -273,7 +274,8 @@ internal class DefaultSendService @AssistedInject constructor(
             attachment: ContentAttachmentData,
             compressBeforeSending: Boolean,
             roomIds: Set<String>,
-            rootThreadEventId: String?
+            rootThreadEventId: String?,
+            relatesTo: RelationDefaultContent?,
     ): Cancelable {
         // Ensure that the event will not be send in a thread if we are a different flow.
         // Like sending files to multiple rooms
@@ -288,7 +290,8 @@ internal class DefaultSendService @AssistedInject constructor(
             localEchoEventFactory.createMediaEvent(
                     roomId = it,
                     attachment = attachment,
-                    rootThreadEventId = rootThreadId
+                    rootThreadEventId = rootThreadId,
+                    relatesTo,
             ).also { event ->
                 createLocalEcho(event)
             }
