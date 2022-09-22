@@ -49,17 +49,17 @@ jobs:
 #            ~/.android/adb*
 #          key: avd-${{ matrix.api-level }}
 
-      - name: create AVD and generate snapshot for caching
+#      - name: create AVD and generate snapshot for caching
 #        if: steps.avd-cache.outputs.cache-hit != 'true'
-        uses: reactivecircus/android-emulator-runner@v2
-        with:
-          api-level: ${{ matrix.api-level }}
-          arch: x86
-          profile: Nexus 5X
-          force-avd-creation: true # Is set to false in the doc https://github.com/ReactiveCircus/android-emulator-runner
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -dns-server 8.8.8.8
-          disable-animations: true
-          script: echo "Generated AVD snapshot for caching."
+#        uses: reactivecircus/android-emulator-runner@v2
+#        with:
+#          api-level: ${{ matrix.api-level }}
+#          arch: x86
+#          profile: Nexus 5X
+#          force-avd-creation: true # Is set to false in the doc https://github.com/ReactiveCircus/android-emulator-runner
+#          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -dns-server 8.8.8.8
+#          disable-animations: true
+#          script: echo "Generated AVD snapshot for caching."
 
       - name: Run all the codecoverage tests at once
         uses: reactivecircus/android-emulator-runner@v2
@@ -69,7 +69,7 @@ jobs:
           arch: x86
           profile: Nexus 5X
           force-avd-creation: false
-          emulator-options: -no-snapshot-save -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -dns-server 8.8.8.8
+          emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -dns-server 8.8.8.8
           disable-animations: true
           # emulator-build: 7425822
           script: |
