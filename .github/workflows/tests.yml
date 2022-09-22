@@ -57,7 +57,7 @@ jobs:
           arch: x86
           profile: Nexus 5X
           force-avd-creation: true # Is set to false in the doc https://github.com/ReactiveCircus/android-emulator-runner
-          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none
+          emulator-options: -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -dns-server 8.8.8.8
           disable-animations: true
           script: echo "Generated AVD snapshot for caching."
 
