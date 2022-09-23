@@ -77,6 +77,8 @@ import im.vector.app.features.media.ImageContentRenderer
 import im.vector.app.features.media.VideoContentRenderer
 import im.vector.app.features.settings.VectorPreferences
 import im.vector.app.features.voice.AudioWaveformView
+import im.vector.app.features.voicebroadcast.STATE_ROOM_VOICE_BROADCAST_INFO
+import im.vector.app.features.voicebroadcast.model.MessageVoiceBroadcastInfoContent
 import im.vector.lib.core.utils.epoxy.charsequence.toEpoxyCharSequence
 import me.gujun.android.span.span
 import org.matrix.android.sdk.api.MatrixUrls.isMxcUrl
@@ -163,7 +165,11 @@ class MessageItemFactory @Inject constructor(
             return buildRedactedItem(attributes, highlight)
         }
 
-        val messageContent = event.getLastMessageContent()
+        val messageContent = if (event.root.getClearType() == STATE_ROOM_VOICE_BROADCAST_INFO) {
+            (event.annotations?.editSummary?.latestContent ?: event.root.getClearContent()).toModel<MessageVoiceBroadcastInfoContent>()
+        } else {
+            event.getLastMessageContent()
+        }
         if (messageContent == null) {
             val malformedText = stringProvider.getString(R.string.malformed_message)
             return defaultItemFactory.create(malformedText, informationData, highlight, callback)
@@ -197,6 +203,7 @@ class MessageItemFactory @Inject constructor(
             is MessagePollContent -> buildPollItem(messageContent, informationData, highlight, callback, attributes)
             is MessageLocationContent -> buildLocationItem(messageContent, informationData, highlight, attributes)
             is MessageBeaconInfoContent -> liveLocationShareMessageItemFactory.create(params.event, highlight, attributes)
+            is MessageVoiceBroadcastInfoContent -> buildVoiceBroadcastItem(messageContent, informationData, highlight, callback, attributes)
             else -> buildNotHandledMessageItem(messageContent, informationData, highlight, callback, attributes)
         }
         return messageItem?.apply {
@@ -697,6 +704,36 @@ class MessageItemFactory @Inject constructor(
                 .leftGuideline(avatarSizeProvider.leftGuideline)
                 .attributes(attributes)
                 .highlighted(highlight)
+    }
+
+    private fun buildVoiceBroadcastItem(
+            messageContent: MessageVoiceBroadcastInfoContent,
+            @Suppress("UNUSED_PARAMETER")
+            informationData: MessageInformationData,
+            highlight: Boolean,
+            callback: TimelineEventController.Callback?,
+            attributes: AbsMessageItem.Attributes,
+    ): MessageTextItem? {
+        val htmlBody = "voice broadcast state: ${messageContent.voiceBroadcastState}"
+        val formattedBody = span {
+            text = htmlBody
+            textColor = colorProvider.getColorFromAttribute(R.attr.vctr_content_secondary)
+            textStyle = "italic"
+        }
+
+        val bindingOptions = spanUtils.getBindingOptions(htmlBody)
+        val message = formattedBody.linkify(callback)
+
+        return MessageTextItem_()
+                .leftGuideline(avatarSizeProvider.leftGuideline)
+                .previewUrlRetriever(callback?.getPreviewUrlRetriever())
+                .imageContentRenderer(imageContentRenderer)
+                .previewUrlCallback(callback)
+                .attributes(attributes)
+                .message(message.toEpoxyCharSequence())
+                .bindingOptions(bindingOptions)
+                .highlighted(highlight)
+                .movementMethod(createLinkMovementMethod(callback))
     }
 
     private fun List<Int?>?.toFft(): List<Int>? {
