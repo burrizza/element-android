@@ -44,3 +44,5 @@ enum class VoiceBroadcastState(val value: String) {
      */
     @Json(name = "stopped") STOPPED("stopped"),
 }
+
+fun VoiceBroadcastState.isStarted() = this != VoiceBroadcastState.STOPPED
