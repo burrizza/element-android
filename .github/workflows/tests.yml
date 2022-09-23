@@ -16,7 +16,7 @@ jobs:
     runs-on: buildjet-4vcpu-ubuntu-2204
     strategy:
       matrix:
-        api-level: [31]
+        api-level: [28]
     # Allow all jobs on main and develop. Just one per PR.
     concurrency:
       group: ${{ github.ref == 'refs/heads/main' && format('unit-tests-main-{0}', github.sha) || github.ref == 'refs/heads/develop' && format('unit-tests-develop-{0}', github.sha) || format('unit-tests-{0}', github.ref) }}
@@ -66,8 +66,9 @@ jobs:
         # continue-on-error: true
         with:
           api-level: ${{ matrix.api-level }}
-          arch: x86
+          arch: x86_64
           profile: Nexus 5X
+          target: google_apis
           force-avd-creation: false
           emulator-options: -no-snapshot -no-window -gpu swiftshader_indirect -noaudio -no-boot-anim -camera-back none -dns-server 8.8.8.8
           disable-animations: true
