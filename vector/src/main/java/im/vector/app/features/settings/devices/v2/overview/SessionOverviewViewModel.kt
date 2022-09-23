@@ -36,6 +36,7 @@ import org.matrix.android.sdk.api.auth.UserInteractiveAuthInterceptor
 import org.matrix.android.sdk.api.auth.registration.RegistrationFlowResponse
 import org.matrix.android.sdk.api.session.Session
 import org.matrix.android.sdk.api.session.uia.DefaultBaseAuth
+import timber.log.Timber
 import kotlin.coroutines.Continuation
 
 class SessionOverviewViewModel @AssistedInject constructor(
@@ -69,13 +70,16 @@ class SessionOverviewViewModel @AssistedInject constructor(
                 .launchIn(viewModelScope)
     }
 
+    // TODO add unit tests
     override fun handle(action: SessionOverviewAction) {
         when (action) {
             SessionOverviewAction.SignoutSession -> handleSignoutSession()
+            SessionOverviewAction.SsoAuthDone -> handleSsoAuthDone()
+            is SessionOverviewAction.PasswordAuthDone -> handlePasswordAuthDone(action)
+            SessionOverviewAction.ReAuthCancelled -> handleReAuthCancelled()
         }
     }
 
-    // TODO add unit tests
     private fun handleSignoutSession() = withState { state ->
         // TODO should we do something different when it is current session?
         viewModelScope.launch {
@@ -83,7 +87,11 @@ class SessionOverviewViewModel @AssistedInject constructor(
                 override fun performStage(flowResponse: RegistrationFlowResponse, errCode: String?, promise: Continuation<UIABaseAuth>) {
                     when (val result = interceptSignoutFlowResponseUseCase.execute(flowResponse, errCode, promise)) {
                         is SignoutSessionResult.ReAuthNeeded -> onReAuthNeeded(result)
-                        is SignoutSessionResult.Completed -> Unit // TODO refresh devices list? + post event to close the associated screen
+                        is SignoutSessionResult.Completed -> {
+                            Timber.d("signout completed")
+                            // TODO check if it is called after a reAuth
+                            // TODO refresh devices list? + post event to close the associated screen
+                        }
                     }
                 }
             })
@@ -91,8 +99,21 @@ class SessionOverviewViewModel @AssistedInject constructor(
     }
 
     private fun onReAuthNeeded(reAuthNeeded: SignoutSessionResult.ReAuthNeeded) {
+        Timber.d("onReAuthNeeded")
         pendingAuthHandler.pendingAuth = DefaultBaseAuth(session = reAuthNeeded.flowResponse.session)
         pendingAuthHandler.uiaContinuation = reAuthNeeded.uiaContinuation
         _viewEvents.post(SessionOverviewViewEvent.RequestReAuth(reAuthNeeded.flowResponse, reAuthNeeded.errCode))
+    }
+
+    private fun handleSsoAuthDone() {
+        pendingAuthHandler.ssoAuthDone()
+    }
+
+    private fun handlePasswordAuthDone(action: SessionOverviewAction.PasswordAuthDone) {
+        pendingAuthHandler.passwordAuthDone(action.password)
+    }
+
+    private fun handleReAuthCancelled() {
+        pendingAuthHandler.reAuthCancelled()
     }
 }
